@@ -4,30 +4,29 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+import json
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 
 # Authenticate and connect to Google Sheets
-def connect_to_gsheet(creds_json, spreadsheet_name, sheet_name):
+def connect_to_gsheet(spreadsheet_name, sheet_name):
     scope = ["https://spreadsheets.google.com/feeds", 
              'https://www.googleapis.com/auth/spreadsheets',
              "https://www.googleapis.com/auth/drive.file", 
              "https://www.googleapis.com/auth/drive"]
-    
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(creds_json, scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["google"], scope)
     client = gspread.authorize(credentials)
     spreadsheet = client.open(spreadsheet_name)  
     return spreadsheet.worksheet(sheet_name)  # Access specific sheet by name
 
-# Google Sheet credentials and details
+# Google Sheet details
 SPREADSHEET_NAME = 'ข้อมูลผู้ป่วย_Virtual_Ward_Clinic'
 SHEET_NAME = 'Form_Records'
-CREDENTIALS_FILE = './credentials.json'
 
 # Connect to the Google Sheet
-sheet_by_name = connect_to_gsheet(CREDENTIALS_FILE, SPREADSHEET_NAME, sheet_name=SHEET_NAME)
+sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, sheet_name=SHEET_NAME)
 
 st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
 st.title("Virtual Ward Clinic  - โรงพยาบาลจุฬาภรณ์")
@@ -44,7 +43,7 @@ def add_data(row):
 # Upload a file to Google Drive
 def upload_to_drive(service_account_file, file_path, file_name, folder_id=None):
     scopes = ["https://www.googleapis.com/auth/drive.file"]
-    credentials = service_account.Credentials.from_service_account_file(service_account_file, scopes=scopes)
+    credentials = service_account.Credentials.from_service_account_info(st.secrets["google"], scopes=scopes)
     drive_service = build('drive', 'v3', credentials=credentials)
 
     file_metadata = {'name': file_name}
@@ -72,7 +71,7 @@ with st.sidebar:
     # Assuming the sheet has columns: 'Name', 'Age', 'Email'
     with st.form(key="data_form", clear_on_submit=True):
         hn = st.text_input("เลขรหัสประจำตัวผู้ป่วย (HN)")
-        bp = st.text_input("ค่าความดัน (BP)", placeholder="ตัวอย่างเช่น 120/80")
+        bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="ตัวอย่างเช่น 120/80")
         hr = st.text_input("อัตราการเต้นของหัวใจ (HR)")
         oxygen = st.text_input("อัตราความเข้มข้นของออกซิเจนในเลือด (% O2)")
         uploaded_file = st.file_uploader("อัพโหลดไฟล์ ECG.pdf", type=["pdf"])
@@ -96,9 +95,9 @@ with st.sidebar:
 
                 add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
                 os.remove(file_name)
-                st.success("Data added and uploaded successfully!")
+                st.success("ข้อมูลได้ถูกทำการบันทึกเรียบร้อยแล้ว!")
             else:
-                st.error("Please fill out the form correctly and upload a PDF.")
+                st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
 
 st.write("")
 # Display data in the main view
