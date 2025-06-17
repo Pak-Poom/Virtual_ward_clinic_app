@@ -41,7 +41,7 @@ def add_data(row):
     sheet_by_name.append_row(row)  # Append the row to the Google Sheet
 
 # Upload a file to Google Drive
-def upload_to_drive(service_account_file, file_path, file_name, folder_id=None):
+def upload_to_drive(file_path, file_name, folder_id=None):
     scopes = ["https://www.googleapis.com/auth/drive.file"]
     credentials = service_account.Credentials.from_service_account_info(st.secrets["google"], scopes=scopes)
     drive_service = build('drive', 'v3', credentials=credentials)
@@ -91,7 +91,7 @@ with st.sidebar:
                     f.write(uploaded_file.getbuffer())
 
                 # Upload to Google Drive
-                drive_link = upload_to_drive(CREDENTIALS_FILE, file_name, file_name=f'{file_name+upload_time}', folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo")
+                drive_link = upload_to_drive(file_name, file_name=f'{file_name+upload_time}', folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo")
 
                 add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
                 os.remove(file_name)
