@@ -29,7 +29,7 @@ SHEET_NAME = 'Form_Records'
 sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, sheet_name=SHEET_NAME)
 
 st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
-st.title("Virtual Ward Clinic  - โรงพยาบาลจุฬาภรณ์")
+st.title("Virtual Ward Clinic by โรงพยาบาลจุฬาภรณ์")
 
 # Read Data from Google Sheets
 def read_data():
@@ -65,47 +65,46 @@ def upload_to_drive(file_path, file_name, folder_id=None):
 
     return uploaded_file.get("webViewLink")  # Returns shareable view link
 
-# Sidebar form for data entry
+# Mainv iew form for data entry
+st.header("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
+with st.form(key="data_form", clear_on_submit=True):
+    hn = st.text_input("เลขรหัสประจำตัวผู้ป่วย (HN)")
+    bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="ตัวอย่างเช่น 120/80")
+    hr = st.text_input("อัตราการเต้นของหัวใจ (HR)")
+    oxygen = st.text_input("อัตราความเข้มข้นของออกซิเจนในเลือด (% O2)")
+    uploaded_file = st.file_uploader("อัพโหลดไฟล์ ECG.pdf", type=["pdf"])
+
+    # Submit button inside the form
+    submitted = st.form_submit_button("ส่งข้อมูล")
+    # Handle form submission
+    if submitted:
+        if all([hn, bp, hr, oxygen]):  # Basic validation to check if required fields are filled
+            
+            file_name = uploaded_file.name
+            file_size = len(uploaded_file.getvalue())  # in bytes
+            upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            data_row = [file_name, f"{file_size // 1024} KB", upload_time]  # Save metadata only (all JSON-serializable)
+
+            with open(file_name, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+
+            # Upload to Google Drive
+            drive_link = upload_to_drive(file_name, file_name=f'{file_name+upload_time}', folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo")
+
+            add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
+            os.remove(file_name)
+            st.success("ข้อมูลได้ถูกทำการบันทึกเรียบร้อยแล้ว!")
+        else:
+            st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
+
 with st.sidebar:
-    st.header("แบบฟอร์มบันทึกข้อมูลผู้ป่วย")
-    # Assuming the sheet has columns: 'Name', 'Age', 'Email'
-    with st.form(key="data_form", clear_on_submit=True):
-        hn = st.text_input("เลขรหัสประจำตัวผู้ป่วย (HN)")
-        bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="ตัวอย่างเช่น 120/80")
-        hr = st.text_input("อัตราการเต้นของหัวใจ (HR)")
-        oxygen = st.text_input("อัตราความเข้มข้นของออกซิเจนในเลือด (% O2)")
-        uploaded_file = st.file_uploader("อัพโหลดไฟล์ ECG.pdf", type=["pdf"])
-
-        # Submit button inside the form
-        submitted = st.form_submit_button("ส่งข้อมูล")
-        # Handle form submission
-        if submitted:
-            if all([hn, bp, hr, oxygen]):  # Basic validation to check if required fields are filled
-                
-                file_name = uploaded_file.name
-                file_size = len(uploaded_file.getvalue())  # in bytes
-                upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                data_row = [file_name, f"{file_size // 1024} KB", upload_time]  # Save metadata only (all JSON-serializable)
-
-                with open(file_name, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-
-                # Upload to Google Drive
-                drive_link = upload_to_drive(file_name, file_name=f'{file_name+upload_time}', folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo")
-
-                add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
-                os.remove(file_name)
-                st.success("ข้อมูลได้ถูกทำการบันทึกเรียบร้อยแล้ว!")
-            else:
-                st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
-
-st.write("")
-# Display data in the main view
-st.subheader("ประวัติการบันทึกข้อมูล :")
-df = read_data()
-
-if hn:
-    filtered_df = df[df["HN"].astype(str) == hn]
-    st.dataframe(filtered_df.iloc[:, :-1])
-else:
-    st.dataframe(df.head(0))
+    st.write("")
+    # Display data in the sidebar view
+    st.subheader("ประวัติการบันทึกข้อมูล :")
+    df = read_data()
+    
+    if hn:
+        filtered_df = df[df["HN"].astype(str) == hn]
+        st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].reset_index().drop('index', axis=1), use_container_width=True)
+    else:
+        st.dataframe(df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].head(0))
