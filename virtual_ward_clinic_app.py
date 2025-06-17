@@ -30,7 +30,7 @@ sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, sheet_name=SHEET_NAME)
 
 # st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
 st.title("Virtual Ward Clinic")
-st.write(": ศูนย์หัวใจและหลอดเลือด -โรงพยาบาลจุฬาภรณ์")
+st.write(":   ศูนย์หัวใจและหลอดเลือด -โรงพยาบาลจุฬาภรณ์")
 
 # Read Data from Google Sheets
 def read_data():
