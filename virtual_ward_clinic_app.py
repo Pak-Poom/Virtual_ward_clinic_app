@@ -28,8 +28,9 @@ SHEET_NAME = 'Form_Records'
 # Connect to the Google Sheet
 sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, sheet_name=SHEET_NAME)
 
-st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
-st.title("Virtual Ward Clinic by โรงพยาบาลจุฬาภรณ์")
+# st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
+st.title("Virtual Ward Clinic")
+st.write("ศูนย์หัวใจและหลอดเลือด โรงพยาบาลจุฬาภรณ์")
 
 # Read Data from Google Sheets
 def read_data():
@@ -66,6 +67,7 @@ def upload_to_drive(file_path, file_name, folder_id=None):
     return uploaded_file.get("webViewLink")  # Returns shareable view link
 
 # Mainv iew form for data entry
+st.write(" ")
 st.header("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
 with st.form(key="data_form", clear_on_submit=True):
     hn = st.text_input("เลขรหัสประจำตัวผู้ป่วย (HN)")
@@ -98,7 +100,6 @@ with st.form(key="data_form", clear_on_submit=True):
             st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
 
 with st.sidebar:
-    st.write("")
     # Display data in the sidebar view
     st.subheader("ประวัติการบันทึกข้อมูล :")
     df = read_data()
