@@ -2,13 +2,15 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 import os
 import json
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
+
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # Authenticate and connect to Google Sheets
 def connect_to_gsheet(spreadsheet_name, sheet_name):
@@ -84,7 +86,8 @@ with st.form(key="data_form", clear_on_submit=True):
             
             file_name = uploaded_file.name
             file_size = len(uploaded_file.getvalue())  # in bytes
-            upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
+            upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
             data_row = [file_name, f"{file_size // 1024} KB", upload_time]  # Save metadata only (all JSON-serializable)
 
             with open(file_name, "wb") as f:
