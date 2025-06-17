@@ -30,7 +30,7 @@ sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, sheet_name=SHEET_NAME)
 
 # st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
 st.title("Virtual Ward Clinic")
-st.write("ศูนย์หัวใจและหลอดเลือด โรงพยาบาลจุฬาภรณ์")
+st.write(": ศูนย์หัวใจและหลอดเลือด -โรงพยาบาลจุฬาภรณ์")
 
 # Read Data from Google Sheets
 def read_data():
@@ -68,7 +68,7 @@ def upload_to_drive(file_path, file_name, folder_id=None):
 
 # Mainv iew form for data entry
 st.write(" ")
-st.header("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
+st.subheader("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
 with st.form(key="data_form", clear_on_submit=True):
     hn = st.text_input("เลขรหัสประจำตัวผู้ป่วย (HN)")
     bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="ตัวอย่างเช่น 120/80")
