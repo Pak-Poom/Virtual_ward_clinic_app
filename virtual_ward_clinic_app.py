@@ -9,6 +9,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 
+import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -67,7 +68,21 @@ def upload_to_drive(file_path, file_name, folder_id=None):
     ).execute()
 
     return uploaded_file.get("webViewLink")  # Returns shareable view link
-        
+
+# === Show Success Message + Auto-Reload After 3 Seconds ===
+if st.session_state.get("submission_success", False):
+    st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว! กำลังโหลดใหม่...")
+
+    st.markdown("""
+        <script>
+            setTimeout(function() {
+                window.location.reload();
+            }, 3000);
+        </script>
+    """, unsafe_allow_html=True)
+
+    st.stop()
+
 # Mainv iew form for data entry
 st.write(" ")
 st.subheader("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
@@ -99,7 +114,7 @@ with st.form(key="data_form", clear_on_submit=True):
             add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
             
             os.remove(file_name)
-            st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
+            st.session_state["submission_success"] = True
             st.rerun()
         else:
             st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
