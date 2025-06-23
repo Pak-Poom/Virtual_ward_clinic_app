@@ -100,6 +100,7 @@ with st.form(key="data_form", clear_on_submit=True):
             
             os.remove(file_name)
             st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
+            st.rerun()
         else:
             st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
 
