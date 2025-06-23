@@ -70,12 +70,13 @@ def upload_to_drive(file_path, file_name, folder_id=None):
     return uploaded_file.get("webViewLink")  # Returns shareable view link
 
 # === Show Timed Success Message ===
-if "submission_success" in st.session_state:
-    if time.time() - st.session_state["submission_success_time"] < 2:
+if st.session_state.get("submission_success", False):
+    elapsed = time.time() - st.session_state.get("submission_success_time", 0)
+    if elapsed < 3:
         st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
     else:
-        del st.session_state["submission_success"]
-        del st.session_state["submission_success_time"]
+        st.session_state.pop("submission_success", None)
+        st.session_state.pop("submission_success_time", None)
         
 # Mainv iew form for data entry
 st.write(" ")
