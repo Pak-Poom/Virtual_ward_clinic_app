@@ -98,9 +98,22 @@ with st.form(key="data_form", clear_on_submit=True):
 
             add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
             os.remove(file_name)
-            st.success("ข้อมูลได้ถูกทำการบันทึกเรียบร้อยแล้ว!")
+
+            # Set success flag
+            st.session_state["submission_success"] = True
+            st.session_state["timestamp"] = time.time()
+            st.experimental_rerun()
         else:
             st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
+
+    # Show message if submission was successful
+    if st.session_state.get("submission_success", False):
+        st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
+    
+        # If more than 3 seconds have passed since the message was set, clear it
+        if time.time() - st.session_state.get("timestamp", 0) > 1:
+            st.session_state["submission_success"] = False
+            st.experimental_rerun()
 
 with st.sidebar:
     # Display data in the sidebar view
