@@ -113,7 +113,6 @@ if st.session_state.get("submission_success", False):
         st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
     else:
         st.session_state["submission_success"] = False
-        st.rerun()
 
 with st.sidebar:
     # Display data in the sidebar view
