@@ -114,7 +114,7 @@ with st.form(key="data_form", clear_on_submit=True):
         # If more than 3 seconds have passed since the message was set, clear it
         if time.time() - st.session_state.get("timestamp", 0) > 2:
             st.session_state["submission_success"] = False
-            st.experimental_rerun()
+            st.rerun()
 
 with st.sidebar:
     # Display data in the sidebar view
