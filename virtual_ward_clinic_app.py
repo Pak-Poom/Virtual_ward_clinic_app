@@ -69,19 +69,21 @@ def upload_to_drive(file_path, file_name, folder_id=None):
 
     return uploaded_file.get("webViewLink")  # Returns shareable view link
 
-# === Show Success Message + Auto-Reload After 3 Seconds ===
+# === Show success message, then rerun after 3 sec
 if st.session_state.get("submission_success", False):
-    st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว! กำลังโหลดใหม่...")
+    if "success_shown_at" not in st.session_state:
+        st.session_state["success_shown_at"] = time.time()
+        st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว! กำลังโหลดใหม่...")
+        st.stop()
 
-    st.markdown("""
-        <script>
-            setTimeout(function() {
-                window.location.reload();
-            }, 3000);
-        </script>
-    """, unsafe_allow_html=True)
-
-    st.stop()
+    elif time.time() - st.session_state["success_shown_at"] < 3:
+        st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว! กำลังโหลดใหม่...")
+        st.stop()
+    else:
+        # Clear state and rerun after ~3 sec
+        del st.session_state["submission_success"]
+        del st.session_state["success_shown_at"]
+        st.rerun()
 
 # Mainv iew form for data entry
 st.write(" ")
