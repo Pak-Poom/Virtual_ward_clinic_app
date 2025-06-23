@@ -69,6 +69,14 @@ def upload_to_drive(file_path, file_name, folder_id=None):
 
     return uploaded_file.get("webViewLink")  # Returns shareable view link
 
+# === Show Timed Success Message ===
+if "submission_success" in st.session_state:
+    if time.time() - st.session_state["submission_success_time"] < 2:
+        st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
+    else:
+        del st.session_state["submission_success"]
+        del st.session_state["submission_success_time"]
+        
 # Mainv iew form for data entry
 st.write(" ")
 st.subheader("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
@@ -102,17 +110,9 @@ with st.form(key="data_form", clear_on_submit=True):
 
             # Set success flag
             st.session_state["submission_success"] = True
-            st.session_state["timestamp"] = time.time()
+            st.session_state["submission_success_time"] = time.time()
         else:
             st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
-
-# Show message if submission was successful
-if st.session_state.get("submission_success", False):
-    elapsed = time.time() - st.session_state.get("timestamp", 0)
-    if elapsed < 2:
-        st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
-    else:
-        st.session_state["submission_success"] = False
 
 with st.sidebar:
     # Display data in the sidebar view
