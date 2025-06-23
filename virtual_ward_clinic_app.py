@@ -74,8 +74,8 @@ st.subheader("แบบฟอร์มบันทึกข้อมูลผู
 with st.form(key="data_form", clear_on_submit=True):
     hn = st.text_input("เลขรหัสประจำตัวผู้ป่วย (HN)")
     bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="ตัวอย่างเช่น 120/80")
-    hr = st.text_input("อัตราการเต้นของหัวใจ (HR)")
-    oxygen = st.text_input("อัตราความเข้มข้นของออกซิเจนในเลือด (% O2)")
+    hr = st.text_input("อัตราการเต้นของหัวใจ (HR), placeholder="ตัวอย่างเช่น 72"")
+    oxygen = st.text_input("อัตราความเข้มข้นของออกซิเจนในเลือด (% O2)", placeholder="ตัวอย่างเช่น 98")
     uploaded_file = st.file_uploader("อัพโหลดไฟล์ ECG.pdf", type=["pdf"])
 
     # Submit button inside the form
