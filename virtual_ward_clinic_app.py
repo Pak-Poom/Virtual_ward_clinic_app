@@ -103,7 +103,7 @@ with st.form(key="data_form", clear_on_submit=True):
             # Set success flag
             st.session_state["submission_success"] = True
             st.session_state["timestamp"] = time.time()
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
 
