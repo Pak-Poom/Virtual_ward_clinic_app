@@ -103,16 +103,15 @@ with st.form(key="data_form", clear_on_submit=True):
             # Set success flag
             st.session_state["submission_success"] = True
             st.session_state["timestamp"] = time.time()
-            st.rerun()
         else:
             st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
 
 # Show message if submission was successful
 if st.session_state.get("submission_success", False):
-    st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
-
-    # If more than 3 seconds have passed since the message was set, clear it
-    if time.time() - st.session_state.get("timestamp", 0) > 2:
+    elapsed = time.time() - st.session_state.get("timestamp", 0)
+    if elapsed < 2:
+        st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
+    else:
         st.session_state["submission_success"] = False
         st.rerun()
 
