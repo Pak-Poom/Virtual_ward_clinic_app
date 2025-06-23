@@ -9,7 +9,6 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 
-import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -68,15 +67,6 @@ def upload_to_drive(file_path, file_name, folder_id=None):
     ).execute()
 
     return uploaded_file.get("webViewLink")  # Returns shareable view link
-
-# === Show Timed Success Message ===
-if st.session_state.get("submission_success", False):
-    elapsed = time.time() - st.session_state.get("submission_success_time", 0)
-    if elapsed < 3:
-        st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
-    else:
-        st.session_state.pop("submission_success", None)
-        st.session_state.pop("submission_success_time", None)
         
 # Mainv iew form for data entry
 st.write(" ")
@@ -107,11 +97,9 @@ with st.form(key="data_form", clear_on_submit=True):
             drive_link = upload_to_drive(file_name, file_name=f'{file_name+upload_time}', folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo")
 
             add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
+            
             os.remove(file_name)
-
-            # Set success flag
-            st.session_state["submission_success"] = True
-            st.session_state["submission_success_time"] = time.time()
+            st.success("ข้อมูลได้ถูกบันทึกเรียบร้อยแล้ว!")
         else:
             st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
 
