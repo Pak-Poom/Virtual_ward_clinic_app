@@ -112,5 +112,3 @@ with st.sidebar:
     if hn:
         filtered_df = df[df["HN"].astype(str) == hn]
         st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].reset_index().drop('index', axis=1), use_container_width=True)
-    else:
-        st.dataframe(df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].head(1))
