@@ -81,33 +81,39 @@ with st.form(key="data_form", clear_on_submit=True):
 
     # Submit button inside the form
     submitted = st.form_submit_button("ส่งข้อมูล")
+    
     # Handle form submission
     if submitted:
-        if all([hn, bp, hr, oxygen]):  # Basic validation to check if required fields are filled
+        with st.status("กำลังส่งข้อมูล...", expanded=True) as status:
             
-            file_name = uploaded_file.name
-            file_size = len(uploaded_file.getvalue())  # in bytes
-            bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
-            upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
-            data_row = [file_name, f"{file_size // 1024} KB", upload_time]  # Save metadata only (all JSON-serializable)
+            if all([hn, bp, hr, oxygen]):  # Basic validation to check if required fields are filled
+                
+                file_name = uploaded_file.name
+                file_size = len(uploaded_file.getvalue())  # in bytes
+                bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
+                upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
+                data_row = [file_name, f"{file_size // 1024} KB", upload_time]  # Save metadata only (all JSON-serializable)
+    
+                with open(file_name, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+    
+                # Upload to Google Drive
+                drive_link = upload_to_drive(file_name, file_name=f'{file_name+upload_time}', folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo")
+    
+                add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
+                
+                os.remove(file_name)
+                # st.success("บันทึกข้อมูลเรียบร้อยสำเร็จ!")
+                status.update(label="ส่งข้อมูลสำเร็จ!", state="complete")
+                st.toast("🎉 ส่งข้อมูลเรียบร้อยแล้ว!")
+            else:
+                # st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
+                status.update(label="❌ กรุณากรอกข้อมูลให้ครบถ้วน", state="error")
+                st.toast("⚠️ โปรดกรอกข้อมูลให้ครบถ้วน")
 
-            with open(file_name, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-
-            # Upload to Google Drive
-            drive_link = upload_to_drive(file_name, file_name=f'{file_name+upload_time}', folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo")
-
-            add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
-            
-            os.remove(file_name)
-            st.success("บันทึกข้อมูลเรียบร้อยสำเร็จ!")
-        else:
-            st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
-
-with st.sidebar:
-    # Display data in the sidebar view
-    st.subheader("ประวัติการบันทึกข้อมูล :")
-    df = read_data()
+# Display recorded data
+st.subheader("ประวัติการบันทึกข้อมูล :")
+df = read_data()
     
     if hn:
         filtered_df = df[df["HN"].astype(str) == hn]
