@@ -115,6 +115,6 @@ with st.form(key="data_form", clear_on_submit=True):
 st.subheader("ประวัติการบันทึกข้อมูล :")
 df = read_data()
     
-    if hn:
-        filtered_df = df[df["HN"].astype(str) == hn]
-        st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].reset_index().drop('index', axis=1), use_container_width=True)
+if hn:
+    filtered_df = df[df["HN"].astype(str) == hn]
+    st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].reset_index().drop('index', axis=1), use_container_width=True)
