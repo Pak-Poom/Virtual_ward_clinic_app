@@ -25,15 +25,17 @@ def connect_to_gsheet(spreadsheet_name, sheet_name):
     return spreadsheet.worksheet(sheet_name)  # Access specific sheet by name
 
 # Google Sheet details
-SPREADSHEET_NAME = 'ข้อมูลผู้ป่วย_Virtual_Ward_Clinic'
+SPREADSHEET_NAME = '1.1 ข้อมูลผู้ป่วย_Virtual_Ward_Clinic'
 SHEET_NAME = 'Form_Records'
 
 # Connect to the Google Sheet
 sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, sheet_name=SHEET_NAME)
 
 # st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
-st.title("Virtual Ward Clinic")
-st.write(":   ศูนย์หัวใจและหลอดเลือด -โรงพยาบาลจุฬาภรณ์")
+st.title("Virtual Ward Clinic 🏥")
+st.write("")
+st.write("ﮩ٨ـﮩﮩ٨ـ♡ﮩ٨ـﮩﮩ٨ـ ")
+st.write(": ศูนย์หัวใจและหลอดเลือด -โรงพยาบาลจุฬาภรณ์")
 
 # Read Data from Google Sheets
 def read_data():
