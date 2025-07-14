@@ -32,7 +32,7 @@ SHEET_NAME = 'Form_Records'
 sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, sheet_name=SHEET_NAME)
 
 # st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
-st.title("🏥 Virtual Ward Clinic")
+st.title("🏥  Virtual Ward Clinic")
 st.write("")
 st.write("ﮩ٨ـﮩﮩ٨ـ♡ﮩ٨ـﮩﮩ٨ـ ")
 st.write(": ศูนย์หัวใจและหลอดเลือด -โรงพยาบาลจุฬาภรณ์")
