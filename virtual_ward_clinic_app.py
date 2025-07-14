@@ -3,57 +3,39 @@ from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
 import pandas as pd
 import os
-import json
-
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from google.oauth2 import service_account
-
-import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-# Authenticate and connect to Google Sheets
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google.oauth2.credentials import Credentials
+
+# === GOOGLE SHEETS AUTH ===
 def connect_to_gsheet(spreadsheet_name, sheet_name):
-    scope = ["https://spreadsheets.google.com/feeds", 
+    scope = ["https://spreadsheets.google.com/feeds",
              'https://www.googleapis.com/auth/spreadsheets',
-             "https://www.googleapis.com/auth/drive.file", 
+             "https://www.googleapis.com/auth/drive.file",
              "https://www.googleapis.com/auth/drive"]
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["google"], scope)
     client = gspread.authorize(credentials)
-    spreadsheet = client.open(spreadsheet_name)  
-    return spreadsheet.worksheet(sheet_name)  # Access specific sheet by name
+    spreadsheet = client.open(spreadsheet_name)
+    return spreadsheet.worksheet(sheet_name)
 
-# Google Sheet details
-SPREADSHEET_NAME = '1.1 ข้อมูลผู้ป่วย_Virtual_Ward_Clinic'
-SHEET_NAME = 'Form_Records'
-
-# Connect to the Google Sheet
-sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, sheet_name=SHEET_NAME)
-
-# st.set_page_config(page_title="Virtual Ward Clinic", layout="wide")
-st.title("Virtual Ward Clinic ⸝⸝⸝ 🚑")
-st.write("ᯓᡣ𐭩 ศูนย์หัวใจและหลอดเลือด -โรงพยาบาลจุฬาภรณ์")
-st.write("")
-
-# Read Data from Google Sheets
-def read_data():
-    data = sheet_by_name.get_all_records()  # Get all records from Google Sheet
-    return pd.DataFrame(data)
-
-# Add Data to Google Sheets
-def add_data(row):
-    sheet_by_name.append_row(row)  # Append the row to the Google Sheet
-
-# Upload a file to Google Drive
+# === GOOGLE DRIVE AUTH (OAuth) ===
 def upload_to_drive(file_path, file_name, folder_id=None):
-    scopes = ["https://www.googleapis.com/auth/drive.file"]
-    credentials = service_account.Credentials.from_service_account_info(st.secrets["google"], scopes=scopes)
-    drive_service = build('drive', 'v3', credentials=credentials)
+    creds = Credentials(
+        token=None,
+        refresh_token=st.secrets["google_oauth"]["refresh_token"],
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=st.secrets["google_oauth"]["client_id"],
+        client_secret=st.secrets["google_oauth"]["client_secret"],
+        scopes=["https://www.googleapis.com/auth/drive.file"]
+    )
+    drive_service = build('drive', 'v3', credentials=creds)
 
     file_metadata = {'name': file_name}
     if folder_id:
-        file_metadata['parents'] = [folder_id]  # Optional: upload into a specific folder
+        file_metadata['parents'] = [folder_id]
 
     media = MediaFileUpload(file_path, mimetype='application/pdf')
     uploaded_file = drive_service.files().create(
@@ -62,60 +44,76 @@ def upload_to_drive(file_path, file_name, folder_id=None):
         fields='id, webViewLink'
     ).execute()
 
-    # Make the file public by setting sharing permission
     drive_service.permissions().create(
         fileId=uploaded_file['id'],
-        body={'type': 'anyone', 'role': 'reader'},  # Anyone can view
+        body={'type': 'anyone', 'role': 'reader'},
     ).execute()
 
-    return uploaded_file.get("webViewLink")  # Returns shareable view link
+    return uploaded_file.get("webViewLink")
 
-# Mainv iew form for data entry
-st.write(" ")
+# === SETUP ===
+SPREADSHEET_NAME = '1.1 ข้อมูลผู้ป่วย_Virtual_Ward_Clinic'
+SHEET_NAME = 'Form_Records'
+FOLDER_ID = st.secrets["google_oauth"]["folder_id"]
+
+sheet_by_name = connect_to_gsheet(SPREADSHEET_NAME, SHEET_NAME)
+
+st.title("Virtual Ward Clinic ⸝⸝⸝ 🚑")
+st.write("ᯓᡣ𐭩 ศูนย์หัวใจและหลอดเลือด -โรงพยาบาลจุฬาภรณ์")
+st.write("")
+
+# === GOOGLE SHEETS HELPERS ===
+def read_data():
+    data = sheet_by_name.get_all_records()
+    return pd.DataFrame(data)
+
+def add_data(row):
+    sheet_by_name.append_row(row)
+
+# === FORM ===
 st.subheader("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
 with st.form(key="data_form", clear_on_submit=True):
     hn = st.text_input("เลขรหัสประจำตัวผู้ป่วย (HN)")
-    bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="ตัวอย่างเช่น 120/80")
-    hr = st.text_input("อัตราการเต้นของหัวใจ (HR)", placeholder="ตัวอย่างเช่น 72")
-    oxygen = st.text_input("อัตราความเข้มข้นของออกซิเจนในเลือด (% O2)", placeholder="ตัวอย่างเช่น 98")
-    uploaded_file = st.file_uploader("อัพโหลดไฟล์ ECG.pdf", type=["pdf"])
+    bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="เช่น 120/80")
+    hr = st.text_input("อัตราการเต้นของหัวใจ (HR)", placeholder="เช่น 72")
+    oxygen = st.text_input("อัตราออกซิเจนในเลือด (% O2)", placeholder="เช่น 98")
+    uploaded_file = st.file_uploader("อัปโหลดไฟล์ ECG (PDF)", type=["pdf"])
 
-    # Submit button inside the form
     submitted = st.form_submit_button("ส่งข้อมูล")
-    
-    # Handle form submission
+
     if submitted:
         with st.status("กำลังส่งข้อมูล...", expanded=True) as status:
-            
-            if all([hn, bp, hr, oxygen]):  # Basic validation to check if required fields are filled
-                
+            if all([hn, bp, hr, oxygen]) and uploaded_file:
                 file_name = uploaded_file.name
-                file_size = len(uploaded_file.getvalue())  # in bytes
+                file_size = len(uploaded_file.getvalue())
                 bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
                 upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
-                data_row = [file_name, f"{file_size // 1024} KB", upload_time]  # Save metadata only (all JSON-serializable)
-    
+
                 with open(file_name, "wb") as f:
                     f.write(uploaded_file.getbuffer())
-    
-                # Upload to Google Drive
-                drive_link = upload_to_drive(file_name, file_name=f'{file_name+upload_time}', folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo")
-    
-                add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])  # Append the Row and Drive Link to sheet
-                
+
+                # Upload to Drive
+                drive_link = upload_to_drive(
+                    file_path=file_name,
+                    file_name=f"{file_name}_{upload_time}",
+                    folder_id=FOLDER_ID
+                )
+
+                # Append data to Sheet
+                add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])
                 os.remove(file_name)
-                # st.success("บันทึกข้อมูลเรียบร้อยสำเร็จ!")
+
                 status.update(label="ส่งข้อมูลสำเร็จ!", state="complete")
                 st.toast("🎉 ส่งข้อมูลเรียบร้อยแล้ว!")
             else:
-                # st.error("กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง!!!")
                 status.update(label="❌ กรุณากรอกข้อมูลให้ครบถ้วน", state="error")
                 st.toast("⚠️ โปรดกรอกข้อมูลให้ครบถ้วน")
 
-# Display recorded data
+# === TABLE ===
 st.subheader("ประวัติการบันทึกข้อมูล :")
 df = read_data()
-    
 if hn:
     filtered_df = df[df["HN"].astype(str) == hn]
-    st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].reset_index().drop('index', axis=1), use_container_width=True)
+    st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']], use_container_width=True)
+else:
+    st.dataframe(df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].head(0))
