@@ -76,9 +76,9 @@ preData_df = read_data()
 st.subheader("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
 with st.form(key="data_form", clear_on_submit=True):
     hn = st.text_input("เลขรหัสประจำตัวผู้ป่วย (HN)")
-    bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="เช่น 120/80")
-    hr = st.text_input("อัตราการเต้นของหัวใจ (HR)", placeholder="เช่น 72")
-    oxygen = st.text_input("อัตราออกซิเจนในเลือด (% O2)", placeholder="เช่น 98")
+    bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="ตัวอย่าง 120/80")
+    hr = st.text_input("อัตราการเต้นของหัวใจ (HR)", placeholder="ตัวอย่าง 72")
+    oxygen = st.text_input("อัตราออกซิเจนในเลือด (% O2)", placeholder="ตัวอย่าง 98")
     uploaded_file = st.file_uploader("อัปโหลดไฟล์ ECG (PDF)", type=["pdf"])
 
     submitted = st.form_submit_button("ส่งข้อมูล")
