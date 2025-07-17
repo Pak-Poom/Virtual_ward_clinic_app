@@ -70,6 +70,8 @@ def read_data():
 def add_data(row):
     sheet_by_name.append_row(row)
 
+preData_df = read_data()
+
 # === FORM ===
 st.subheader("แบบฟอร์มบันทึกข้อมูลผู้ป่วย : ")
 with st.form(key="data_form", clear_on_submit=True):
@@ -83,28 +85,33 @@ with st.form(key="data_form", clear_on_submit=True):
 
     if submitted:
         with st.status("กำลังส่งข้อมูล...", expanded=True) as status:
+            time.sleep(1)
+
             if all([hn, bp, hr, oxygen]) and uploaded_file:
                 file_name = uploaded_file.name
                 file_size = len(uploaded_file.getvalue())
                 bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
                 upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
 
-                with open(file_name, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
+                if preData_df["File_Name"].isin([file_name]).any():
+                    status.update(label="❌ ไฟล์อัพโหลดซ้ำ", state="error")
 
-                # Upload to Drive
-                drive_link = upload_to_drive(
-                    file_path=file_name,
-                    file_name=f"{file_name}_{upload_time}",
-                    folder_id=FOLDER_ID
-                )
+                else:
+                    with open(file_name, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
 
-                # Append data to Sheet
-                add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])
-                os.remove(file_name)
+                    # Upload to Drive
+                    drive_link = upload_to_drive(
+                        file_path=file_name,
+                        file_name=f"{file_name}_{upload_time}",
+                        folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo"
+                    )
 
-                status.update(label="ส่งข้อมูลสำเร็จ!", state="complete")
-                st.toast("🎉 ส่งข้อมูลเรียบร้อยแล้ว!")
+                    add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])
+
+                    os.remove(file_name)
+                    status.update(label="ส่งข้อมูลสำเร็จ!", state="complete")
+                    st.toast("🎉 ส่งข้อมูลเรียบร้อยแล้ว!")  
             else:
                 status.update(label="❌ กรุณากรอกข้อมูลให้ครบถ้วน", state="error")
                 st.toast("⚠️ โปรดกรอกข้อมูลให้ครบถ้วน")
@@ -114,6 +121,6 @@ st.subheader("ประวัติการบันทึกข้อมูล
 df = read_data()
 if hn:
     filtered_df = df[df["HN"].astype(str) == hn]
-    st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']], use_container_width=True)
+    st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time', 'File_Name']], use_container_width=True)
 else:
-    st.dataframe(df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time']].head(0))
+    st.dataframe(df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time', 'File_Name']].head(0))
