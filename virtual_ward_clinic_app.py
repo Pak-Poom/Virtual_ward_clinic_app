@@ -80,10 +80,24 @@ with st.form(key="data_form", clear_on_submit=True):
     bp = st.text_input("ค่าความดันโลหิต (BP)", placeholder="ตัวอย่าง 120/80")
     hr = st.text_input("อัตราการเต้นของหัวใจ (HR)", placeholder="ตัวอย่าง 72")
     oxygen = st.text_input("อัตราออกซิเจนในเลือด (% O2)", placeholder="ตัวอย่าง 98")
+
+    col1, col2, col3 = st.columns([1, 1, 5])
+    with col1:
+        st.markdown("อาการ :")
+    with col2:
+        st.markdown("<p style='padding-top:5px'></p>", unsafe_allow_html=True)
+        no_symptoms = st.checkbox("ไม่มี", key="no_symptoms")
+    with col3:
+        st.markdown("<p style='padding-top:5px'></p>", unsafe_allow_html=True)
+        any_symptoms = st.checkbox("มีอาการ", key="any_symptoms")
+    
+    col1, col2, col3 = st.columns([1, 1, 5])
+    with col3:
+        identify_symptoms = st.text_area("ระบุอาการ (ถ้ามี) ;", placeholder="เช่น ... ใจสั่นเล็กน้อย, เจ็บแน่นหน้าอก, จุกที่ลิ้นปี่")
+        
     uploaded_file = st.file_uploader("อัปโหลดไฟล์ ECG (PDF)", type=["pdf"])
 
     submitted = st.form_submit_button("ส่งข้อมูล")
-
     if submitted:
         with st.status("กำลังส่งข้อมูล...", expanded=True) as status:
             time.sleep(1)
@@ -108,7 +122,10 @@ with st.form(key="data_form", clear_on_submit=True):
                         folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo"
                     )
 
-                    add_data([hn, bp, hr, oxygen, file_name, f"{file_size // 1024} KB", upload_time, drive_link])
+                    if no_symptoms :
+                        add_data([hn, bp, hr, oxygen, "ไม่มีอาการ", "-", file_name, f"{file_size // 1024} KB", upload_time, drive_link])
+                    if any_symptoms :
+                        add_data([hn, bp, hr, oxygen, "มีอาการ", identify_symptoms, file_name, f"{file_size // 1024} KB", upload_time, drive_link])
 
                     os.remove(file_name)
                     status.update(label="ส่งข้อมูลสำเร็จ!", state="complete")
@@ -122,6 +139,6 @@ st.subheader("ประวัติการบันทึกข้อมูล
 df = read_data()
 if hn:
     filtered_df = df[df["HN"].astype(str) == hn]
-    st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time', 'File_Name']], use_container_width=True)
+    st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'iden_symptoms', 'Upload_Time', 'File_Name']], use_container_width=True)
 else:
-    st.dataframe(df[['HN', 'BP', 'HR', 'O2_sat', 'Upload_Time', 'File_Name']].head(0))
+    st.dataframe(df[['HN', 'BP', 'HR', 'O2_sat', 'iden_symptoms', 'Upload_Time', 'File_Name']].head(0))
