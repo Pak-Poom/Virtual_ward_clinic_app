@@ -120,7 +120,7 @@ with st.form(key="data_form", clear_on_submit=True):
                         # Upload to Drive
                         drive_link = upload_to_drive(
                             file_path=file_name,
-                            file_name=f"{file_name}_{upload_time}",
+                            file_name=f"{file_name}_{hn}_{upload_time}",
                             folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo"
                         )
     
