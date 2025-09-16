@@ -108,8 +108,11 @@ with st.form(key="data_form", clear_on_submit=True):
                 bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
                 upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
 
-                if preData_df["File_Name"].isin([file_name]).any():
-                    status.update(label="❌ ไฟล์อัพโหลดซ้ำ", state="error")
+                if preData_df.empty:
+                    pass
+                else:
+                    if preData_df["File_Name"].isin([file_name]).any():
+                        status.update(label="❌ ไฟล์อัพโหลดซ้ำ", state="error")
 
                 else:
                     with open(file_name, "wb") as f:
