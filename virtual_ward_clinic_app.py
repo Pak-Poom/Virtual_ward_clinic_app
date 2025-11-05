@@ -102,7 +102,7 @@ with st.form(key="data_form", clear_on_submit=True):
         with st.status("กำลังส่งข้อมูล...", expanded=True) as status:
             time.sleep(1)
 
-            if all([hn, bp, hr, oxygen]) and uploaded_file:
+            if all([hn, bp, hr, oxygen]): # and uploaded_file
                 file_name = uploaded_file.name
                 file_size = len(uploaded_file.getvalue())
                 bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
