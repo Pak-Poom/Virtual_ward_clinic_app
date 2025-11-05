@@ -101,37 +101,47 @@ with st.form(key="data_form", clear_on_submit=True):
     if submitted:
         with st.status("กำลังส่งข้อมูล...", expanded=True) as status:
             time.sleep(1)
-
-            if all([hn, bp, hr, oxygen]): # and uploaded_file
-                file_name = uploaded_file.name
-                file_size = len(uploaded_file.getvalue())
+    
+            if all([hn, bp, hr, oxygen]):
                 bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
                 upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
-
-                if preData_df.empty:
-                    pass
-                else:
-                    if preData_df["File_Name"].isin([file_name]).any():
-                        status.update(label="❌ ไฟล์อัพโหลดซ้ำ", state="error")
+    
+                # 🟢 Check if a file was uploaded
+                if uploaded_file is not None and uploaded_file.size > 0:
+                    file_name = uploaded_file.name
+                    file_size = len(uploaded_file.getvalue())
+    
+                    if preData_df.empty:
+                        pass
                     else:
-                        with open(file_name, "wb") as f:
-                            f.write(uploaded_file.getbuffer())
+                        if preData_df["File_Name"].isin([file_name]).any():
+                            status.update(label="❌ ไฟล์อัพโหลดซ้ำ", state="error")
+                        else:
+                            with open(file_name, "wb") as f:
+                                f.write(uploaded_file.getbuffer())
     
-                        # Upload to Drive
-                        drive_link = upload_to_drive(
-                            file_path=file_name,
-                            file_name=f"{file_name}_{hn}_{upload_time}",
-                            folder_id="1zPAWPxFCz0emGFWx4nxxHVDwLSAqquOo"
-                        )
+                            # Upload to Drive
+                            drive_link = upload_to_drive(
+                                file_path=file_name,
+                                file_name=f"{file_name}_{hn}_{upload_time}",
+                                folder_id=FOLDER_ID
+                            )
     
-                        if no_symptoms :
-                            add_data([hn, bp, hr, oxygen, "ไม่มีอาการ", "-", file_name, f"{file_size // 1024} KB", upload_time, drive_link])
-                        if any_symptoms :
-                            add_data([hn, bp, hr, oxygen, "มีอาการ", identify_symptoms, file_name, f"{file_size // 1024} KB", upload_time, drive_link])
+                            os.remove(file_name)
+                else:
+                    # 🟡 No file uploaded — leave these empty
+                    file_name = ""
+                    file_size = ""
+                    drive_link = ""
     
-                        os.remove(file_name)
-                        status.update(label="ส่งข้อมูลสำเร็จ!", state="complete")
-                        st.toast("🎉 ส่งข้อมูลเรียบร้อยแล้ว!")  
+                # Add row to Google Sheet (file link may be empty)
+                if no_symptoms:
+                    add_data([hn, bp, hr, oxygen, "ไม่มีอาการ", "-", file_name, file_size, upload_time, drive_link])
+                if any_symptoms:
+                    add_data([hn, bp, hr, oxygen, "มีอาการ", identify_symptoms, file_name, file_size, upload_time, drive_link])
+    
+                status.update(label="✅ ส่งข้อมูลสำเร็จ!", state="complete")
+                st.toast("🎉 ส่งข้อมูลเรียบร้อยแล้ว!")  
             else:
                 status.update(label="❌ กรุณากรอกข้อมูลให้ครบถ้วน", state="error")
                 st.toast("⚠️ โปรดกรอกข้อมูลให้ครบถ้วน")
