@@ -154,8 +154,20 @@ with st.form(key="data_form", clear_on_submit=True):
 # === TABLE ===
 st.subheader("ประวัติการบันทึกข้อมูล :")
 df = read_data()
-if hn:
-    filtered_df = df[df["HN"].astype(str) == hn]
-    st.dataframe(filtered_df[['HN', 'BP', 'HR', 'O2_sat', 'iden_symptoms', 'Upload_Time', 'File_Name']], use_container_width=True)
+
+if df.empty:
+    st.info("ยังไม่มีข้อมูลในตาราง")
 else:
-    st.dataframe(df[['HN', 'BP', 'HR', 'O2_sat', 'iden_symptoms', 'Upload_Time', 'File_Name']].head(0))
+    df.columns = df.columns.str.strip()
+
+    cols_to_show = ['HN', 'BP', 'HR', 'O2_sat', 'iden_symptoms', 'Upload_Time', 'File_Name']
+    existing_cols = [c for c in cols_to_show if c in df.columns]
+
+    if not existing_cols:
+        st.error(f"ไม่พบคอลัมน์ที่ต้องการในชีต ตอนนี้มีคอลัมน์: {list(df.columns)}")
+    else:
+        if hn:
+            filtered_df = df[df["HN"].astype(str) == str(hn)]
+            st.dataframe(filtered_df[existing_cols], use_container_width=True)
+        else:
+            st.dataframe(df[existing_cols].head(0), use_container_width=True)
