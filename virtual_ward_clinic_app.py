@@ -103,53 +103,53 @@ with st.form(key="data_form", clear_on_submit=True):
             time.sleep(1)
     
             if all([hn, bp, hr, oxygen]):
-              bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
-              upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
-              file_name = ""
-              file_size = ""
-              drive_link = ""          
-
-              # 🟢 Check if a file was uploaded
-              if uploaded_file is not None and uploaded_file.size > 0:
-                  file_name = uploaded_file.name
-                  file_size = uploaded_file.size  # simpler than len(getvalue())
-              
-                  # If you want to block duplicates
-                  if not preData_df.empty and preData_df["File_Name"].astype(str).eq(str(file_name)).any():
-                      status.update(label="❌ ไฟล์อัพโหลดซ้ำ", state="error")
-                      st.stop()  # IMPORTANT: stop here so it won't append to sheet
-              
-                  # Save locally then upload
-                  safe_local_name = f"temp_{int(time.time())}_{file_name}"
-                  with open(safe_local_name, "wb") as f:
-                      f.write(uploaded_file.getbuffer())
-              
-                  drive_link = upload_to_drive(
-                      file_path=safe_local_name,
-                      file_name=f"{file_name}_{hn}_{upload_time}",
-                      folder_id=FOLDER_ID
-                  )
-              
-                  os.remove(safe_local_name)
-
-              if no_symptoms and any_symptoms:
-                  status.update(label="❌ กรุณาเลือกอาการเพียง 1 ตัวเลือก", state="error")
-                  st.stop()
-              if not no_symptoms and not any_symptoms:
-                  status.update(label="❌ กรุณาเลือกอาการ", state="error")
-                  st.stop()
-
-              # Add row to Google Sheet (file link may be empty)
-              if no_symptoms:
-                  add_data([hn, bp, hr, oxygen, "ไม่มีอาการ", "-", file_name, file_size, upload_time, drive_link])
-              if any_symptoms:
-                  add_data([hn, bp, hr, oxygen, "มีอาการ", identify_symptoms, file_name, file_size, upload_time, drive_link])
-  
-              status.update(label="✅ ส่งข้อมูลสำเร็จ!", state="complete")
-              st.toast("🎉 ส่งข้อมูลเรียบร้อยแล้ว!")  
-    else:
-        status.update(label="❌ กรุณากรอกข้อมูลให้ครบถ้วน", state="error")
-        st.toast("⚠️ โปรดกรอกข้อมูลให้ครบถ้วน")
+                bangkok_time = datetime.now(ZoneInfo("Asia/Bangkok"))
+                upload_time = bangkok_time.strftime("%Y-%m-%d %H:%M:%S")
+    
+                file_name = ""
+                file_size = ""
+                drive_link = ""
+    
+                # 🟢 Check if a file was uploaded
+                if uploaded_file is not None and uploaded_file.size > 0:
+                    file_name = uploaded_file.name
+                    file_size = uploaded_file.size
+    
+                    # block duplicates
+                    if not preData_df.empty and preData_df["File_Name"].astype(str).eq(str(file_name)).any():
+                        status.update(label="❌ ไฟล์อัพโหลดซ้ำ", state="error")
+                        st.stop()
+    
+                    safe_local_name = f"temp_{int(time.time())}_{file_name}"
+                    with open(safe_local_name, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+    
+                    drive_link = upload_to_drive(
+                        file_path=safe_local_name,
+                        file_name=f"{file_name}_{hn}_{upload_time}",
+                        folder_id=FOLDER_ID
+                    )
+                    os.remove(safe_local_name)
+    
+                # symptom checks
+                if no_symptoms and any_symptoms:
+                    status.update(label="❌ กรุณาเลือกอาการเพียง 1 ตัวเลือก", state="error")
+                    st.stop()
+                if not no_symptoms and not any_symptoms:
+                    status.update(label="❌ กรุณาเลือกอาการ", state="error")
+                    st.stop()
+    
+                # Add row
+                if no_symptoms:
+                    add_data([hn, bp, hr, oxygen, "ไม่มีอาการ", "-", file_name, file_size, upload_time, drive_link])
+                else:
+                    add_data([hn, bp, hr, oxygen, "มีอาการ", identify_symptoms, file_name, file_size, upload_time, drive_link])
+    
+                status.update(label="✅ ส่งข้อมูลสำเร็จ!", state="complete")
+                st.toast("🎉 ส่งข้อมูลเรียบร้อยแล้ว!")
+            else:
+                status.update(label="❌ กรุณากรอกข้อมูลให้ครบถ้วน", state="error")
+                st.toast("⚠️ โปรดกรอกข้อมูลให้ครบถ้วน")
 
 # === TABLE ===
 st.subheader("ประวัติการบันทึกข้อมูล :")
